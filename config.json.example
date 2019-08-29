@@ -1,5 +1,5 @@
 {
-    "source": "/tmp/foo",
+    "source": "/var/run/elcheapoais/notifier",
     
     "destinations": {"green": "/sys/class/leds/orangepi:green:pwr/brightness",
                      "red": "/sys/class/leds/orangepi:red:status/brightness"},
