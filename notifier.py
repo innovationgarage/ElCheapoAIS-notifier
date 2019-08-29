@@ -79,6 +79,7 @@ class Notifier(object):
             os.mkfifo(source)
         
         self.signalgen = SignalGenerator()
+        self.signalgen.daemon = True
         self.signalgen.start()
 
         for name, dest in destinations.items():
@@ -113,8 +114,9 @@ class Notifier(object):
                 return
         print("    No matching rule")
 
-def test():
-    g = SignalGenerator(daemon=True)
+def signalgentest():
+    g = SignalGenerator()
+    g.daemon = True
     g.add_destination("red", print_destination("red"))
     g.add_destination("green", print_destination("green"))
     g.start()
