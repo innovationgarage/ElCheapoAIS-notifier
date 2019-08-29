@@ -1,6 +1,10 @@
 import threading
 import time
 import math
+import select
+import os.path
+import sys
+import json
 
 def item_signal(frequency, phase=0):
     i = 0
@@ -49,7 +53,7 @@ class SignalGenerator(threading.Thread):
         self.destinations[name] = destination
 
     def __setitem__(self, name, signal):
-        if isinstance(signal, tuple):
+        if isinstance(signal, (tuple, list)):
             frequency = self.timestep * signal[0]
             phase = 0
             if signal[1:]:
@@ -63,14 +67,60 @@ class SignalGenerator(threading.Thread):
     def __getitem__(self, name):
         return self.signals[name]
 
-g = SignalGenerator()
-g.add_destination("green", "/sys/class/leds/orangepi:green:pwr/brightness")
-g.add_destination("red", "/sys/class/leds/orangepi:red:status/brightness")
-#g.add_destination("red", print_destination("red"))
-#g.add_destination("green", print_destination("green"))
-g.start()
+class Notifier(object):
+    def __init__(self, source, destinations, mappings):
+        self.source = source
+        self.destinations = destinations
+        self.mappings = mappings
+        
+        self.values = {}
 
-g["red"] = (10, 0)
-g["green"] = (5, 0)
-time.sleep(3)
-g["red"] = (0, 0)
+        if not os.path.exists(source):
+            os.mkfifo(source)
+        
+        self.signalgen = SignalGenerator()
+        self.signalgen.start()
+
+        for name, dest in destinations.items():
+            self.signalgen.add_destination(name, dest)
+
+        self.map()
+        
+        self.waitforinput()
+            
+    def waitforinput(self):
+        while True:
+            print("Opening pipe")
+            with open(self.source, 'r') as f:
+                for line in f:
+                    name, value = line.split("=")
+                    self.values[name] = int(value)
+                    self.map()
+
+    def match(self, rule):
+        for name, value in rule.items():
+            if self.values.get(name, 0) < value:
+                return False
+        return True
+            
+    def map(self):
+        print("Matching %s" % (self.values,))
+        for rule in self.mappings:
+            if self.match(rule["in"]):
+                print("    Matching rule: %s" % (rule,))
+                for name, value in rule["out"].items():
+                    self.signalgen[name] = value
+                return
+        print("    No matching rule")
+
+def test():
+    g = SignalGenerator(daemon=True)
+    g.add_destination("red", print_destination("red"))
+    g.add_destination("green", print_destination("green"))
+    g.start()
+    return g
+        
+if __name__ == "__main__":
+    with open(sys.argv[1]) as f:
+        config = json.load(f)
+    Notifier(**config)
