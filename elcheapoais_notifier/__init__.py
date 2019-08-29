@@ -122,7 +122,7 @@ def signalgentest():
     g.start()
     return g
         
-if __name__ == "__main__":
+def main():
     with open(sys.argv[1]) as f:
         config = json.load(f)
     Notifier(**config)

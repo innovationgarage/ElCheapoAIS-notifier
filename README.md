@@ -2,7 +2,7 @@
 
 ## Usage
 
-    python notifier.py config.json
+    elcheapoais-notifier config.json
 
 ## Protocol
 
