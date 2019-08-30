@@ -16,7 +16,7 @@ def test(signal, length=20):
     for i, v in enumerate(signal):
         if i > length:
             break
-        print(i, v)
+        sys.stderr.write("%s, %s\n" % (i, v))
 
 def file_destination(filename):
     def destination(value):
@@ -26,7 +26,7 @@ def file_destination(filename):
 
 def print_destination(name):
     def destination(value):
-        print("%s=%s" % (name, value))
+        sys.stderr.write("%s=%s\n" % (name, value))
     return destination
 
 class SignalGenerator(threading.Thread):
@@ -91,7 +91,7 @@ class Notifier(object):
             
     def waitforinput(self):
         while True:
-            print("Opening pipe")
+            sys.stderr.write("Opening pip\n")
             with open(self.source, 'r') as f:
                 for line in f:
                     name, value = line.split("=")
@@ -105,14 +105,14 @@ class Notifier(object):
         return True
             
     def map(self):
-        print("Matching %s" % (self.values,))
+        sys.stderr.write("Matching %s\n" % (self.values,))
         for rule in self.mappings:
             if self.match(rule["in"]):
-                print("    Matching rule: %s" % (rule,))
+                sys.stderr.write("    Matching rule: %sn" % (rule,))
                 for name, value in rule["out"].items():
                     self.signalgen[name] = value
                 return
-        print("    No matching rule")
+        sys.stderr.write("    No matching rule\n")
 
 def signalgentest():
     g = SignalGenerator()
