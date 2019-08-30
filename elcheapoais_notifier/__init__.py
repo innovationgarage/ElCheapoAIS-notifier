@@ -108,7 +108,7 @@ class Notifier(object):
         sys.stderr.write("Matching %s\n" % (self.values,))
         for rule in self.mappings:
             if self.match(rule["in"]):
-                sys.stderr.write("    Matching rule: %sn" % (rule,))
+                sys.stderr.write("    Matching rule: %s\n" % (rule,))
                 for name, value in rule["out"].items():
                     self.signalgen[name] = value
                 return
